@@ -10,7 +10,7 @@ window.AET=window.AET||{};
     list.innerHTML='<article class="swipe-card"><div class="swipe-card__media"><span class="swipe-card__chip">'+ui.escapeHtml(u.city||'Lieu')+'</span><span>'+ui.escapeHtml(ui.initials(u.displayName))+'</span>'+(u.isOnline?'<span class="swipe-card__chip online">En ligne</span>':'')+'</div><div class="swipe-card__body"><div class="swipe-card__name">'+ui.escapeHtml(u.displayName)+' <span class="age">'+u.age+'</span></div><div class="swipe-card__meta">'+(u.isVerified?'&#9989; Verifie':'')+' &middot; '+ui.escapeHtml(u.bio||'')+'</div><div class="swipe-card__tags">'+tags+'</div></div><div class="swipe-actions"><button class="btn-circle" data-action="pass">&#10006;</button><button class="btn-circle primary" data-action="like">&#10084;</button><button class="btn-circle success" data-action="super">&#11088;</button></div></article>';
     list.querySelectorAll('[data-action]').forEach(function(b){b.onclick=function(){
       var a=b.dataset.action;
-      if((a==='like'||a==='super')&&matches.create){matches.create(u);ui.toast(a==='super'?'Super like envoye !':'Nouveau match !','success');}
+      if((a==='like'||a==='super')&&matches.create){matches.create(u);if(a==='super')ui.toast('Super like envoye !','success');if(window.AET.app&&window.AET.app.celebrateMatch)window.AET.app.celebrateMatch(u);}
       else ui.toast('Profil passe','');
       setTimeout(render,300);
     };});
