@@ -38,7 +38,7 @@ window.AET=window.AET||{};
   function loadNews(){
     var t=document.getElementById('newsRows');
     t.innerHTML=data.state.news.map(function(n,i){return '<tr><td><strong>'+ui.escapeHtml(n.title)+'</strong></td><td>'+ui.escapeHtml(n.category)+'</td><td><span class="tag ok">publie</span></td><td class="row-actions"><button class="btn btn-secondary btn-sm" type="button">Editer</button><button class="btn btn-danger btn-sm" type="button" data-delnews="'+i+'">Suppr.</button></td></tr>';}).join('');
-    t.querySelectorAll('[data-delnews]').forEach(function(b){b.onclick=function(){data.state.news.splice(+b.dataset.delnews,1);ui.toast('Supprime','error');loadNews();};});
+    t.querySelectorAll('[data-delnews]').forEach(function(b){b.onclick=function(){var removed=data.state.news.splice(+b.dataset.delnews,1);data.audit('news_delete',removed[0]&&removed[0].title);ui.toast('Supprime','error');loadNews();};});
   }
   function loadJobs(){
     var t=document.getElementById('jobsRows');
