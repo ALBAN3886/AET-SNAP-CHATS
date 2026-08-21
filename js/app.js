@@ -63,10 +63,17 @@ window.AET=window.AET||{};
     set('proMetier',me.metier||'Non renseigne - completez votre profil professionnel.');
     var ps=document.getElementById('proSkills');if(ps)ps.innerHTML=(me.skills||['A completer']).map(function(x){return '<span class="badge">'+ui.escapeHtml(x)+'</span>';}).join('');
   }
+  
+  var SESSION_KEY='aet_session_v1';
+  function saveSession(u){try{window.localStorage.setItem(SESSION_KEY,JSON.stringify(u));}catch(e){}}
+  function loadSession(){try{var raw=window.localStorage.getItem(SESSION_KEY);return raw?JSON.parse(raw):null;}catch(e){return null;}}
+  function clearSession(){try{window.localStorage.removeItem(SESSION_KEY);}catch(e){}}
+
   function showApp(me){
     var as=document.getElementById('authScreen');if(as)as.style.display='none';
     var shell=document.getElementById('appShell');if(shell)shell.style.display='grid';
     window.AET._demoUser=Object.assign({displayName:'Vous'},me||{});
+    saveSession(window.AET._demoUser);
     renderProfile();
     if(window.AET.matches)window.AET.matches.render();
     if(window.AET.messages)window.AET.messages.renderConvList();
@@ -74,6 +81,7 @@ window.AET=window.AET||{};
     data.audit('login_success',(me&&me.email||'demo'));
     ui.toast('Bienvenue '+(me&&(me.displayName||me.email)||'!'),'success');
   }
+  function ageFromBirthdate(d){if(!d)return null;var b=new Date(d);if(isNaN(b))return null;var t=new Date();var age=t.getFullYear()-b.getFullYear();var m=t.getMonth()-b.getMonth();if(m<0||(m===0&&t.getDate()<b.getDate()))age--;return age;}
   function bindAuthUI(){
     var tabs=document.getElementById('authTabs'),title=document.getElementById('authTitle'),submitBtn=document.getElementById('authSubmit'),signupOnly=document.getElementById('signupOnly'),signupExtra=document.getElementById('signupExtra');
     var mode='login';
@@ -83,9 +91,29 @@ window.AET=window.AET||{};
     if(tabs)tabs.querySelectorAll('.auth-tab').forEach(function(t){t.addEventListener('click',function(){setMode(t.dataset.tab);});});
     if(new URLSearchParams(location.search).get('signup')==='1')setMode('signup');
     var form=document.getElementById('authForm');
-    if(form)form.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(form);var email=fd.get('email'),password=fd.get('password');
-      auth.signIn(email,password).then(function(res){showApp(res.user);}).catch(function(){ui.toast('Mode demo','success');showApp({uid:'me',email:email,displayName:email.split('@')[0]});});});
-    var lo=document.getElementById('logoutLink');if(lo)lo.addEventListener('click',function(e){e.preventDefault();auth.signOut().then(function(){var sh=document.getElementById('appShell');if(sh)sh.style.display='none';var as=document.getElementById('authScreen');if(as)as.style.display='flex';});});
+    if(form)form.addEventListener('submit',function(e){
+      e.preventDefault();
+      var fd=new FormData(form);
+      var email=(fd.get('email')||'').trim(),password=fd.get('password')||'';
+      if(mode==='signup'){
+        var displayName=(fd.get('displayName')||'').trim();
+        var birthdate=fd.get('birthdate');
+        var city=(fd.get('city')||'').trim();
+        var gender=fd.get('gender')||'other';
+        if(!displayName){ui.toast('Merci d indiquer votre nom.','error');return;}
+        var age=ageFromBirthdate(birthdate);
+        if(age===null){ui.toast('Merci d indiquer votre date de naissance.','error');return;}
+        if(age<18){ui.toast('Vous devez avoir 18 ans ou plus pour vous inscrire.','error');return;}
+        if(!fd.get('consentAge')||!fd.get('consentTerms')){ui.toast('Merci de cocher les cases de consentement.','error');return;}
+        auth.signUp({email:email,password:password,displayName:displayName,birthdate:birthdate,city:city,gender:gender}).then(function(res){
+          showApp(Object.assign({},res.user,{displayName:displayName,city:city,gender:gender,birthdate:birthdate}));
+        }).catch(function(err){ui.toast('Inscription impossible : '+(err&&err.message||'reessayez'),'error');});
+      }else{
+        if(!email||!password){ui.toast('Merci de renseigner email et mot de passe.','error');return;}
+        auth.signIn(email,password).then(function(res){showApp(res.user);}).catch(function(){ui.toast('Mode demo - identifiants non verifies','success');showApp({uid:'me',email:email,displayName:email.split('@')[0]});});
+      }
+    });
+    var lo=document.getElementById('logoutLink');if(lo)lo.addEventListener('click',function(e){e.preventDefault();clearSession();auth.signOut().then(function(){var sh=document.getElementById('appShell');if(sh)sh.style.display='none';var as=document.getElementById('authScreen');if(as)as.style.display='flex';if(form)form.reset();});});
     document.querySelectorAll('[data-page]').forEach(function(a){a.addEventListener('click',function(){navigate(a.dataset.page);});});
     var jp=document.getElementById('jobPostBtn');if(jp)jp.addEventListener('click',function(){if(window.AET.jobs)window.AET.jobs.openPost();});
     var sp=document.getElementById('seekerPostBtn');if(sp)sp.addEventListener('click',function(){if(window.AET.jobs)window.AET.jobs.openPostSeeker();});
@@ -104,20 +132,33 @@ window.AET=window.AET||{};
     });});
     var mr=document.getElementById('markReadBtn');if(mr)mr.addEventListener('click',function(){data.markNotifsRead();renderNotifications();updateNotifBadge();});
     var hp=document.getElementById('homePublish');if(hp)hp.addEventListener('click',function(){navigate('jobs');setTimeout(function(){if(window.AET.jobs)window.AET.jobs.openPost();},250);});
-    var ep=document.getElementById('editProfileBtn');if(ep)ep.addEventListener('click',function(){ui.toast('Edition a venir','success');});
+    var ep=document.getElementById('editProfileBtn');if(ep)ep.addEventListener('click',openEditProfile);
     var nb=document.getElementById('notifBtn');if(nb)nb.addEventListener('click',function(){navigate('notifications');});
     var gs=document.getElementById('globalSearch');if(gs)gs.addEventListener('input',function(e){var q=e.target.value.toLowerCase().trim();if(!q)return;
       if(['annonce','offre','job','emploi'].some(function(x){return q.indexOf(x)>=0;})){e.target.value='';navigate('jobs');ui.toast('Section emploi','success');}
       else if(['article','news','actu'].some(function(x){return q.indexOf(x)>=0;})){e.target.value='';navigate('news');ui.toast('Section actualites','success');}});
     if(location.hash)navigate(location.hash.slice(1));else navigate('home');
   }
+  function openEditProfile(){
+    var me=window.AET._demoUser||{};
+    ui.modal({html:'<h3>Modifier mon profil</h3><form id="editProfileForm"><div class="field"><label class="label">Nom affiche</label><input class="input" name="displayName" value="'+ui.escapeHtml(me.displayName||'')+'" required/></div><div class="field"><label class="label">Ville</label><input class="input" name="city" value="'+ui.escapeHtml(me.city||'')+'"/></div><div class="field"><label class="label">Bio</label><textarea class="input" name="bio" rows="3">'+ui.escapeHtml(me.bio||'')+'</textarea></div><div class="field"><label class="label">Centres d interet (separes par virgule)</label><input class="input" name="interests" value="'+ui.escapeHtml((me.interests||['Voyages','Cuisine','Lecture','Sport','Musique']).join(', '))+'"/></div><div class="modal-actions"><button type="button" class="btn btn-secondary" id="cancelEditProfile">Annuler</button><button class="btn btn-primary" type="submit">Enregistrer</button></div></form>',
+      onMount:function(){
+        var f=document.getElementById('editProfileForm');var c=document.getElementById('cancelEditProfile');if(c)c.onclick=function(){var mc=document.getElementById('modalClose');if(mc)mc.click();};
+        f.onsubmit=function(e){e.preventDefault();var fd=new FormData(f);
+          window.AET._demoUser=Object.assign({},me,{displayName:fd.get('displayName'),city:fd.get('city'),bio:fd.get('bio'),interests:(fd.get('interests')||'').split(',').map(function(x){return x.trim();}).filter(Boolean)});
+          saveSession(window.AET._demoUser);renderProfile();ui.toast('Profil mis a jour','success');var mc=document.getElementById('modalClose');if(mc)mc.click();
+        };
+      }});
+  }
   function boot(){
     var mc=document.getElementById('modalClose');if(mc)mc.onclick=function(){var back=document.getElementById('modalBackdrop');if(back){back.classList.remove('is-open');var c=document.getElementById('modalContent');if(c)c.innerHTML='';}};
     auth.initFb();
     if(location.pathname.endsWith('/admin.html')||location.pathname.endsWith('/admin')||document.getElementById('adminAuth')){if(window.AET.admin)window.AET.admin.start();return;}
     bindAuthUI();
-    setTimeout(function(){showApp({uid:'me',email:'demo@aet-rencontre.app',displayName:'Vous'});},200);
+    var session=loadSession();
+    if(session){showApp(session);}
   }
+
   function celebrateMatch(u){
     ui.modal({large:true,html:'<div class="match-celebrate"><div class="match-celebrate__hearts">&#128149;</div><h2>C\'est un Match ! ❤️</h2><p>Vous et <strong>'+ui.escapeHtml(u.displayName)+'</strong> vous etes plu.</p><div class="match-celebrate__avatars"><div class="avatar">Vous</div><div class="avatar">'+ui.escapeHtml(ui.initials(u.displayName))+'</div></div><div class="modal-actions"><button class="btn btn-secondary" id="matchContinue">Continuer a decouvrir</button><button class="btn btn-primary" id="matchSayHi">Envoyer un message</button></div></div>',
       onMount:function(){
