@@ -8,11 +8,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"/>
-<link rel="stylesheet" href="/css/styles.css"/>
-<link rel="stylesheet" href="/css/admin.css"/>
+<link rel="stylesheet" href="css/styles.css"/>
+<link rel="stylesheet" href="css/admin.css"/>
 </head>
 <body>
-<div class="auth-screen" id="adminAuth" style="display:none"><div class="auth-card"><h2>Acces administrateur</h2><p style="text-align:center;color:var(--gray-600);margin-bottom:18px;font-size:14px">Connectez-vous avec un compte admin.</p><form id="adminLoginForm" autocomplete="on"><div class="field"><label class="label">Email admin</label><input class="input" name="email" type="email" required/></div><div class="field"><label class="label">Mot de passe</label><input class="input" name="password" type="password" required/></div><button type="submit" class="btn btn-primary btn-full btn-lg">Connexion admin</button></form><div class="auth-footer"><a href="/app.html">Ouvrir l application</a></div></div></div>
+<div class="auth-screen" id="adminAuth" style="display:none"><div class="auth-card"><h2>Acces administrateur</h2><p style="text-align:center;color:var(--gray-600);margin-bottom:18px;font-size:14px">Connectez-vous avec un compte admin.</p><form id="adminLoginForm" autocomplete="on"><div class="field"><label class="label">Email admin</label><input class="input" name="email" type="email" required/></div><div class="field"><label class="label">Mot de passe</label><input class="input" name="password" type="password" required/></div><button type="submit" class="btn btn-primary btn-full btn-lg">Connexion admin</button></form><div class="auth-footer"><a href="app.html">Ouvrir l application</a></div></div></div>
 
 <div class="admin-wrap" id="adminShell" style="display:none"><aside class="admin-side"><div class="brand"><span class="brand__mark">AET</span><span>Console Admin</span></div><a class="is-active" data-admin="dashboard">Tableau de bord</a><a data-admin="users">Utilisateurs</a><a data-admin="reports">Signalements</a><a data-admin="news">Actualites</a><a data-admin="jobs">Offres</a><a data-admin="audit">Audit log</a><div style="margin-top:auto;padding-top:20px;border-top:1px solid #333;font-size:13px;color:#BDBDBD"><div id="adminMe" style="margin-bottom:8px"></div><a id="adminLogout" style="color:#E85D75;font-weight:600;cursor:pointer">Deconnexion</a></div></aside>
 <main class="admin-main">
@@ -30,10 +30,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-<script src="/firebase-config.js"></script>
-<script src="/js/auth.js"></script>
-<script src="/js/data.js"></script>
-<script src="/js/ui.js"></script>
-<script src="/js/services/admin.js"></script>
-<script src="/js/app.js"></script>
+<script src="firebase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/services/admin.js"></script>
+<script src="js/app.js"></script>
 </body></html>
