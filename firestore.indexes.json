@@ -1,0 +1,6 @@
+{"indexes":[
+{"collectionGroup":"users","queryScope":"COLLECTION","fields":[{"fieldPath":"isVisible","order":"ASCENDING"},{"fieldPath":"lastActive","order":"DESCENDING"}]},
+{"collectionGroup":"matches","queryScope":"COLLECTION","fields":[{"fieldPath":"userIds","arrayConfig":"CONTAINS"},{"fieldPath":"updatedAt","order":"DESCENDING"}]},
+{"collectionGroup":"news","queryScope":"COLLECTION","fields":[{"fieldPath":"publishedAt","order":"DESCENDING"},{"fieldPath":"category","order":"ASCENDING"}]},
+{"collectionGroup":"jobs","queryScope":"COLLECTION","fields":[{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"publishedAt","order":"DESCENDING"}]}
+],"fieldOverrides":[]}
