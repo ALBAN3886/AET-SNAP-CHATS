@@ -5,14 +5,51 @@ window.AET=window.AET||{};
   function navigate(page){
     document.querySelectorAll('[data-page]').forEach(function(a){a.classList.toggle('is-active',a.dataset.page===page);});
     document.querySelectorAll('.page').forEach(function(p){p.classList.toggle('is-active',p.id==='page-'+page);});
-    var t=document.getElementById('pageTitle');if(t)t.textContent={discover:'Decouvrir',matches:'Matchs',messages:'Conversations',news:'Actualites',jobs:'Emploi',profile:'Mon profil'}[page]||'AET';
+    var t=document.getElementById('pageTitle');if(t)t.textContent={home:'Accueil',discover:'Decouvrir',matches:'Matchs',messages:'Conversations',news:'Actualites',jobs:'Emploi',notifications:'Notifications',profile:'Mon profil'}[page]||'AET';
     location.hash='#'+page;
+    if(page==='home')renderHome();
     if(window.AET.discovery&&page==='discover')window.AET.discovery.render();
     if(window.AET.matches&&page==='matches')window.AET.matches.render();
     if(window.AET.messages&&page==='messages')window.AET.messages.renderConvList();
     if(window.AET.news&&page==='news')window.AET.news.render();
     if(window.AET.jobs&&page==='jobs')window.AET.jobs.render();
+    if(page==='notifications')renderNotifications();
     if(page==='profile')renderProfile();
+  }
+  function renderHome(){
+    var me=(window.AET._demoUser)||{displayName:'Utilisateur'};
+    var g=document.getElementById('homeGreeting');if(g)g.textContent='Bonjour '+((me.displayName||'').split(' ')[0]||'')+' 👋';
+    var pool=data.state.pool.slice(0,5);
+    var reco=document.getElementById('homeRecoProfiles');
+    if(reco)reco.innerHTML=pool.length?pool.map(function(u){return '<div class="mini-card"><div class="avatar">'+ui.escapeHtml(ui.initials(u.displayName))+'</div><div class="mini-card__name">'+ui.escapeHtml(u.displayName)+', '+u.age+'</div><div class="mini-card__meta">'+ui.escapeHtml(u.city)+'</div></div>';}).join(''):'<div class="empty"><div class="empty__icon">&#128269;</div><h3>Aucun profil trouve</h3><p>Revenez plus tard.</p></div>';
+    var ms=data.state.matches.slice(0,4);
+    var mm=document.getElementById('homeRecentMatches');
+    if(mm)mm.innerHTML=ms.length?ms.map(function(m){return '<div class="mini-card"><div class="avatar">'+ui.escapeHtml(m.other.avatar||ui.initials(m.other.displayName))+'</div><div class="mini-card__name">'+ui.escapeHtml(m.other.displayName)+'</div><div class="mini-card__meta">'+ui.escapeHtml(m.lastMessage||'Nouvelle connexion')+'</div></div>';}).join(''):'<div class="empty"><div class="empty__icon">&#128149;</div><h3>Aucun match</h3><p>Allez decouvrir des profils.</p></div>';
+    var msgs=data.state.matches.filter(function(m){return m.lastMessage;}).slice(0,4);
+    var mh=document.getElementById('homeRecentMessages');
+    if(mh)mh.innerHTML=msgs.length?msgs.map(function(m){return '<div class="mini-card"><div class="avatar">'+ui.escapeHtml(m.other.avatar||ui.initials(m.other.displayName))+'</div><div class="mini-card__name">'+ui.escapeHtml(m.other.displayName)+'</div><div class="mini-card__meta">'+ui.escapeHtml(m.lastMessage)+'</div></div>';}).join(''):'<div class="empty"><div class="empty__icon">&#128172;</div><h3>Aucun message</h3><p>Vos conversations apparaitront ici.</p></div>';
+    var news=data.state.news.slice(0,3);
+    var nh=document.getElementById('homeRecentNews');
+    if(nh)nh.innerHTML=news.length?news.map(function(n){return '<div class="mini-card"><div class="mini-card__name">'+ui.escapeHtml(n.title)+'</div><div class="mini-card__meta">'+ui.escapeHtml(n.category)+'</div></div>';}).join(''):'<div class="empty"><div class="empty__icon">&#128240;</div><h3>Aucune actualite</h3></div>';
+    var jobs=data.state.jobs.slice(0,3);
+    var jh=document.getElementById('homeRecentJobs');
+    if(jh)jh.innerHTML=jobs.length?jobs.map(function(j){return '<div class="mini-card"><div class="mini-card__name">'+ui.escapeHtml(j.title)+'</div><div class="mini-card__meta">'+ui.escapeHtml(j.company)+' &middot; '+ui.escapeHtml(j.city)+'</div></div>';}).join(''):'<div class="empty"><div class="empty__icon">&#128188;</div><h3>Aucune offre</h3></div>';
+  }
+  function renderNotifications(){
+    var host=document.getElementById('notifList');if(!host)return;
+    var list=data.state.notifications;
+    host.innerHTML=list.length?list.map(function(n){return '<div class="notif-item'+(n.read?'':' unread')+'"><div class="avatar">AET</div><div><div>'+ui.escapeHtml(n.text)+'</div><div style="font-size:12px;color:var(--gray-400);margin-top:2px">'+ui.timeAgo(n.ts||Date.now())+'</div></div></div>';}).join(''):'<div class="empty"><div class="empty__icon">&#128276;</div><h3>Aucune notification</h3><p>Vous serez alerte des qu il se passe quelque chose.</p></div>';
+    updateNotifBadge();
+  }
+  function updateNotifBadge(){
+    var unread=data.state.notifications.filter(function(n){return !n.read;}).length;
+    var b=document.getElementById('notifBadgeNav');if(b)b.textContent=unread||'0';
+    var d=document.getElementById('notifDot');if(d)d.style.display=unread?'block':'none';
+  }
+  function updateMobileBadges(){
+    var mUn=data.state.matches.reduce(function(s,m){return s+(m.unread||0);},0);
+    var mb=document.getElementById('matchBadgeMobile');if(mb){mb.textContent=mUn||'';mb.style.display=mUn?'flex':'none';}
+    var msb=document.getElementById('msgBadgeMobile');if(msb){msb.textContent=mUn||'';msb.style.display=mUn?'flex':'none';}
   }
   function renderProfile(){
     var me=(window.AET._demoUser)||{displayName:'Utilisateur',email:'--',uid:'me'};
@@ -22,6 +59,9 @@ window.AET=window.AET||{};
     var ph=document.getElementById('profilePhotos');if(ph)ph.innerHTML=Array.from({length:6}).map(function(_,i){return '<div class="slot">'+(i?'+':'&#128247;')+'</div>';}).join('');
     var ints=document.getElementById('profileInterests');if(ints)ints.innerHTML=['Voyages','Cuisine','Lecture','Sport','Musique'].map(function(x){return '<span class="badge">'+ui.escapeHtml(x)+'</span>';}).join('');
     var prefs=document.getElementById('profilePrefs');if(prefs)prefs.innerHTML='18 - 50 ans &middot; 50 km &middot; Tous genres';
+    set('profileAvatarPro',init);set('profileNamePro',me.displayName||'Utilisateur');
+    set('proMetier',me.metier||'Non renseigne - completez votre profil professionnel.');
+    var ps=document.getElementById('proSkills');if(ps)ps.innerHTML=(me.skills||['A completer']).map(function(x){return '<span class="badge">'+ui.escapeHtml(x)+'</span>';}).join('');
   }
   function showApp(me){
     var as=document.getElementById('authScreen');if(as)as.style.display='none';
@@ -30,6 +70,7 @@ window.AET=window.AET||{};
     renderProfile();
     if(window.AET.matches)window.AET.matches.render();
     if(window.AET.messages)window.AET.messages.renderConvList();
+    updateNotifBadge();updateMobileBadges();
     data.audit('login_success',(me&&me.email||'demo'));
     ui.toast('Bienvenue '+(me&&(me.displayName||me.email)||'!'),'success');
   }
@@ -47,12 +88,28 @@ window.AET=window.AET||{};
     var lo=document.getElementById('logoutLink');if(lo)lo.addEventListener('click',function(e){e.preventDefault();auth.signOut().then(function(){var sh=document.getElementById('appShell');if(sh)sh.style.display='none';var as=document.getElementById('authScreen');if(as)as.style.display='flex';});});
     document.querySelectorAll('[data-page]').forEach(function(a){a.addEventListener('click',function(){navigate(a.dataset.page);});});
     var jp=document.getElementById('jobPostBtn');if(jp)jp.addEventListener('click',function(){if(window.AET.jobs)window.AET.jobs.openPost();});
+    var sp=document.getElementById('seekerPostBtn');if(sp)sp.addEventListener('click',function(){if(window.AET.jobs)window.AET.jobs.openPostSeeker();});
+    document.querySelectorAll('#jobsModeSwitch [data-jobmode]').forEach(function(btn){btn.addEventListener('click',function(){
+      document.querySelectorAll('#jobsModeSwitch [data-jobmode]').forEach(function(b){b.classList.toggle('is-active',b===btn);});
+      var isSeek=btn.dataset.jobmode==='seek';
+      document.getElementById('jobModeRecruit').style.display=isSeek?'none':'block';
+      document.getElementById('jobModeSeek').style.display=isSeek?'block':'none';
+      if(window.AET.jobs)window.AET.jobs.render();
+    });});
+    document.querySelectorAll('#profileModeSwitch [data-profilemode]').forEach(function(btn){btn.addEventListener('click',function(){
+      document.querySelectorAll('#profileModeSwitch [data-profilemode]').forEach(function(b){b.classList.toggle('is-active',b===btn);});
+      var isPro=btn.dataset.profilemode==='pro';
+      document.getElementById('profileModePersonal').style.display=isPro?'none':'block';
+      document.getElementById('profileModePro').style.display=isPro?'block':'none';
+    });});
+    var mr=document.getElementById('markReadBtn');if(mr)mr.addEventListener('click',function(){data.markNotifsRead();renderNotifications();updateNotifBadge();});
+    var hp=document.getElementById('homePublish');if(hp)hp.addEventListener('click',function(){navigate('jobs');setTimeout(function(){if(window.AET.jobs)window.AET.jobs.openPost();},250);});
     var ep=document.getElementById('editProfileBtn');if(ep)ep.addEventListener('click',function(){ui.toast('Edition a venir','success');});
-    var nb=document.getElementById('notifBtn');if(nb)nb.addEventListener('click',function(){var list=data.state.notifications.slice(0,5);ui.modal({html:'<h3>Notifications</h3>'+(list.length?list.map(function(n){return '<div class="notif-item"><div class="avatar">AET</div><div><div>'+ui.escapeHtml(n.text)+'</div><div style="font-size:12px;color:var(--gray-400);margin-top:2px">A l instant</div></div></div>';}).join(''):'<div class="empty"><div class="empty__icon">&#128276;</div><h3>Aucune notification</h3></div>')});});
+    var nb=document.getElementById('notifBtn');if(nb)nb.addEventListener('click',function(){navigate('notifications');});
     var gs=document.getElementById('globalSearch');if(gs)gs.addEventListener('input',function(e){var q=e.target.value.toLowerCase().trim();if(!q)return;
       if(['annonce','offre','job','emploi'].some(function(x){return q.indexOf(x)>=0;})){e.target.value='';navigate('jobs');ui.toast('Section emploi','success');}
       else if(['article','news','actu'].some(function(x){return q.indexOf(x)>=0;})){e.target.value='';navigate('news');ui.toast('Section actualites','success');}});
-    if(location.hash)navigate(location.hash.slice(1));else navigate('discover');
+    if(location.hash)navigate(location.hash.slice(1));else navigate('home');
   }
   function boot(){
     var mc=document.getElementById('modalClose');if(mc)mc.onclick=function(){var back=document.getElementById('modalBackdrop');if(back){back.classList.remove('is-open');var c=document.getElementById('modalContent');if(c)c.innerHTML='';}};
@@ -61,5 +118,15 @@ window.AET=window.AET||{};
     bindAuthUI();
     setTimeout(function(){showApp({uid:'me',email:'demo@aet-rencontre.app',displayName:'Vous'});},200);
   }
+  function celebrateMatch(u){
+    ui.modal({large:true,html:'<div class="match-celebrate"><div class="match-celebrate__hearts">&#128149;</div><h2>C\'est un Match ! ❤️</h2><p>Vous et <strong>'+ui.escapeHtml(u.displayName)+'</strong> vous etes plu.</p><div class="match-celebrate__avatars"><div class="avatar">Vous</div><div class="avatar">'+ui.escapeHtml(ui.initials(u.displayName))+'</div></div><div class="modal-actions"><button class="btn btn-secondary" id="matchContinue">Continuer a decouvrir</button><button class="btn btn-primary" id="matchSayHi">Envoyer un message</button></div></div>',
+      onMount:function(){
+        var c=document.getElementById('matchContinue');if(c)c.onclick=function(){var mc=document.getElementById('modalClose');if(mc)mc.click();};
+        var s=document.getElementById('matchSayHi');if(s)s.onclick=function(){var mc=document.getElementById('modalClose');if(mc)mc.click();navigate('matches');};
+      }});
+    data.pushNotif('Nouveau match avec '+u.displayName);
+    updateNotifBadge();updateMobileBadges();
+  }
+  window.AET.app={navigate:navigate,updateMobileBadges:updateMobileBadges,updateNotifBadge:updateNotifBadge,celebrateMatch:celebrateMatch};
   document.addEventListener('DOMContentLoaded',boot);
 })();
