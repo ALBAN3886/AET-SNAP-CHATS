@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>AET RENCONTRE - Application</title>
+<meta name="theme-color" content="#E85D75"/>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="icon" type="image/png" href="/assets/icons/icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"/>
+<link rel="stylesheet" href="/css/styles.css"/>
+<link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body>
+<div class="auth-screen" id="authScreen"><div class="auth-card"><div class="brand" style="justify-content:center;margin-bottom:14px;font-size:19px"><span class="brand__mark">AET</span><span>AET RENCONTRE</span></div><h2 id="authTitle">Bienvenue</h2><p style="text-align:center;color:var(--gray-600);margin-bottom:18px;font-size:14px">Connectez-vous pour rejoindre la communaute.</p><div class="auth-tabs" id="authTabs"><div class="auth-tab is-active" data-tab="login">Connexion</div><div class="auth-tab" data-tab="signup">Inscription</div></div><form id="authForm" autocomplete="on" novalidate><div id="signupOnly" style="display:none"><div class="field"><label class="label">Nom complet</label><input class="input" name="displayName" type="text" placeholder="Ex : Aicha K."/></div></div><div class="field"><label class="label">Email</label><input class="input" name="email" type="email" required placeholder="vous@email.com"/></div><div class="field"><label class="label">Mot de passe</label><input class="input" name="password" type="password" required minlength="6" placeholder="6 caracteres minimum"/></div><div id="signupExtra" style="display:none"><div class="field"><label class="label">Date de naissance (18+ requis)</label><input class="input" name="birthdate" type="date"/></div><div class="field"><label class="label">Ville</label><input class="input" name="city" type="text" placeholder="Ex : Dakar"/></div><div class="field"><label class="label">Vous etes</label><select class="input" name="gender"><option value="woman">Femme</option><option value="man">Homme</option><option value="other">Autre</option></select></div><p class="help">En creant un compte, vous confirmez avoir 18 ans ou plus.</p></div><button type="submit" class="btn btn-primary btn-full btn-lg" id="authSubmit">Se connecter</button></form><div class="auth-footer"><a href="/">Retour a l accueil</a></div></div></div>
+
+<div class="app-shell" id="appShell" style="display:none">
+<aside class="app-side"><div class="brand"><span class="brand__mark">AET</span><span>AET</span></div><nav class="app-nav"><a data-page="discover" class="is-active"><span>&#10084;</span><span>Decouvrir</span></a><a data-page="matches"><span>&#128149;</span><span>Matchs</span><span class="badge" id="matchBadge">0</span></a><a data-page="messages"><span>&#128172;</span><span>Messages</span><span class="badge" id="msgBadge">0</span></a><a data-page="news"><span>&#128240;</span><span>Actualites</span></a><a data-page="jobs"><span>&#128188;</span><span>Emploi</span></a><a data-page="profile"><span>&#128100;</span><span>Profil</span></a></nav><div class="app-side__foot"><div id="meCard" style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><div class="avatar" id="meAvatar">--</div><div style="min-width:0"><div style="font-weight:700;font-size:14px" id="meName">--</div><div style="font-size:11px;color:var(--gray-600)" id="meCity">--</div></div></div><a href="#" id="logoutLink" style="font-size:12px;color:var(--coral-dark)">Se deconnecter</a></div></aside>
+<div class="app-main"><header class="topbar"><div class="topbar__title" id="pageTitle">Decouvrir</div><div class="topbar__search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="globalSearch" type="text" placeholder="Rechercher..."/></div><div style="flex:1"></div><button class="icon-btn" id="notifBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="dot" id="notifDot" style="display:none"></span></button><div class="avatar" id="topAvatar">--</div></header>
+
+<section class="page is-active" id="page-discover"><div class="page-head"><div><h2>Decouvrir</h2><p>Trouvez des personnes interessant(e)s autour de vous.</p></div></div><div class="discover" id="discoverList"></div></section>
+<section class="page" id="page-matches"><div class="page-head"><div><h2>Vos matchs</h2><p>Les personnes qui ont croise votre chemin.</p></div></div><div class="match-list" id="matchList"></div><div class="empty" id="matchesEmpty" style="display:none"><div class="empty__icon">&#128149;</div><h3>Aucun match pour l instant</h3><p>Decouvrez et likez pour creer des matchs.</p></div></section>
+<section class="page" id="page-messages"><div class="page-head"><div><h2>Conversations</h2><p>Echangez avec vos matchs en temps reel.</p></div></div><div class="conv-layout" id="convLayout"><div class="conv-list" id="convList"></div><div class="chat" id="chatPane"><div class="empty" id="chatEmpty" style="margin:auto"><div class="empty__icon">&#128172;</div><h3>Selectionnez une conversation</h3><p>Choisissez un match a gauche.</p></div></div></div></section>
+<section class="page" id="page-news"><div class="page-head"><div><h2>Actualites</h2><p>Une selection pour la communaute.</p></div></div><div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap" id="newsFilters"></div><div class="news-grid" id="newsGrid"></div></section>
+<section class="page" id="page-jobs"><div class="page-head"><div><h2>Emploi</h2><p>Offres d emploi mises en avant.</p></div></div><div class="jobs-toolbar"><input class="input" id="jobSearch" type="text" placeholder="Rechercher une offre, entreprise, ville" style="flex:1;min-width:220px"/><select class="input" id="jobContract" style="max-width:170px"><option value="">Tous types</option><option value="cdi">CDI</option><option value="cdd">CDD</option><option value="freelance">Freelance</option><option value="stage">Stage</option></select><button class="btn btn-primary" id="jobPostBtn">Publier une offre</button></div><div class="jobs-list" id="jobsList"></div></section>
+<section class="page" id="page-profile"><div class="page-head"><div><h2>Mon profil</h2><p>Modifiez vos informations et photos.</p></div><button class="btn btn-secondary btn-sm" id="editProfileBtn">Modifier</button></div><div class="profile-grid"><div class="profile-hero"><div class="avatar" id="profileAvatar">--</div><h3 id="profileName">--</h3><p id="profileMeta">--</p><div class="profile-photos" id="profilePhotos"></div></div><div><div class="profile-section"><h3>&#128100; A propos</h3><p id="profileBio" style="color:var(--gray-600);margin:0">Aucune bio renseignee.</p></div><div class="profile-section"><h3>&#127757; Centres d interet</h3><div id="profileInterests" style="display:flex;gap:6px;flex-wrap:wrap"></div></div><div class="profile-section"><h3>&#128161; Preferences</h3><div id="profilePrefs" style="font-size:14px;color:var(--gray-600)">--</div></div></div></div></section>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav__inner"><a data-page="discover" class="is-active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Decouvrir</span></a><a data-page="matches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg><span>Matchs</span></a><a data-page="messages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Messages</span></a><a data-page="news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 8h16"/></svg><span>Actu</span></a><a data-page="jobs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg><span>Emploi</span></a><a data-page="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profil</span></a></div></nav>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop"><div class="modal" id="modalBase"><button class="modal__close" id="modalClose" type="button">&times;</button><div id="modalContent"></div></div></div>
+<div class="toast-host" id="toastHost"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="/firebase-config.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/data.js"></script>
+<script src="/js/services/discovery.js"></script>
+<script src="/js/services/matches.js"></script>
+<script src="/js/services/messages.js"></script>
+<script src="/js/services/news.js"></script>
+<script src="/js/services/jobs.js"></script>
+<script src="/js/services/admin.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/app.js"></script>
+</body></html>
