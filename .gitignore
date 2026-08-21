@@ -1,0 +1,6 @@
+node_modules/
+.firebase/
+*.log
+firebase-config.js
+functions/node_modules/
+*.zip
