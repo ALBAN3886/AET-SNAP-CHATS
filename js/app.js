@@ -55,13 +55,44 @@ window.AET=window.AET||{};
     var me=(window.AET._demoUser)||{displayName:'Utilisateur',email:'--',uid:'me'};
     var init=ui.initials(me.displayName||'U');
     function set(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
-    set('meName',me.displayName||'Utilisateur');set('meCity','Dakar');set('meAvatar',init);set('topAvatar',init);set('profileAvatar',init);set('profileName',me.displayName||'Utilisateur');set('profileMeta',me.email||'--');
-    var ph=document.getElementById('profilePhotos');if(ph)ph.innerHTML=Array.from({length:6}).map(function(_,i){return '<div class="slot">'+(i?'+':'&#128247;')+'</div>';}).join('');
-    var ints=document.getElementById('profileInterests');if(ints)ints.innerHTML=['Voyages','Cuisine','Lecture','Sport','Musique'].map(function(x){return '<span class="badge">'+ui.escapeHtml(x)+'</span>';}).join('');
+    set('meName',me.displayName||'Utilisateur');set('meCity',me.city||'Ville non renseignee');set('meAvatar',init);set('topAvatar',init);set('profileAvatar',init);set('profileName',me.displayName||'Utilisateur');set('profileMeta',(me.city?me.city+' &middot; ':'')+(me.email||'--'));
+    var photos=me.photos||[];
+    var ph=document.getElementById('profilePhotos');
+    if(ph){
+      ph.innerHTML=Array.from({length:6}).map(function(_,i){
+        if(photos[i])return '<div class="slot slot--filled" data-slot="'+i+'" style="background-image:url(\''+photos[i]+'\');background-size:cover;background-position:center"></div>';
+        return '<div class="slot" data-slot="'+i+'">'+(i===0?'&#128247;':'+')+'</div>';
+      }).join('');
+      ph.querySelectorAll('[data-slot]').forEach(function(el){el.onclick=function(){triggerPhotoUpload(+el.dataset.slot);};});
+    }
+    var bioEl=document.getElementById('profileBio');if(bioEl)bioEl.textContent=me.bio||'Aucune bio renseignee.';
+    var ints=document.getElementById('profileInterests');if(ints)ints.innerHTML=(me.interests&&me.interests.length?me.interests:['Voyages','Cuisine','Lecture','Sport','Musique']).map(function(x){return '<span class="badge">'+ui.escapeHtml(x)+'</span>';}).join('');
     var prefs=document.getElementById('profilePrefs');if(prefs)prefs.innerHTML='18 - 50 ans &middot; 50 km &middot; Tous genres';
     set('profileAvatarPro',init);set('profileNamePro',me.displayName||'Utilisateur');
     set('proMetier',me.metier||'Non renseigne - completez votre profil professionnel.');
     var ps=document.getElementById('proSkills');if(ps)ps.innerHTML=(me.skills||['A completer']).map(function(x){return '<span class="badge">'+ui.escapeHtml(x)+'</span>';}).join('');
+  }
+
+  function triggerPhotoUpload(slot){
+    if(!auth.isFirebaseActive()){ui.toast('Ajout de photos disponible une fois Firebase connecte.','error');return;}
+    var me=window.AET._demoUser;if(!me||!me.uid){ui.toast('Connectez-vous pour ajouter une photo.','error');return;}
+    var input=document.createElement('input');input.type='file';input.accept='image/*';
+    input.onchange=function(){
+      var file=input.files[0];if(!file)return;
+      if(file.size>5*1024*1024){ui.toast('Image trop lourde (5 Mo max).','error');return;}
+      ui.toast('Envoi de la photo...','success');
+      var fb=window.AET.fb;
+      var path='users/'+me.uid+'/photos/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'');
+      var ref=fb.storage.ref().child(path);
+      ref.put(file).then(function(snap){return snap.ref.getDownloadURL();}).then(function(url){
+        var photos=(me.photos||[]).slice();while(photos.length<slot)photos.push(null);photos[slot]=url;
+        return fb.db.collection('users').doc(me.uid).set({photos:photos},{merge:true}).then(function(){return photos;});
+      }).then(function(photos){
+        window.AET._demoUser=Object.assign({},me,{photos:photos});
+        renderProfile();ui.toast('Photo ajoutee !','success');
+      }).catch(function(err){ui.toast('Echec de l\'envoi : '+err.message,'error');});
+    };
+    input.click();
   }
   
   var SESSION_KEY='aet_session_v1';
@@ -115,6 +146,7 @@ window.AET=window.AET||{};
     });
     var lo=document.getElementById('logoutLink');if(lo)lo.addEventListener('click',function(e){e.preventDefault();clearSession();auth.signOut().then(function(){var sh=document.getElementById('appShell');if(sh)sh.style.display='none';var as=document.getElementById('authScreen');if(as)as.style.display='flex';if(form)form.reset();});});
     document.querySelectorAll('[data-page]').forEach(function(a){a.addEventListener('click',function(){navigate(a.dataset.page);});});
+    var pab=document.getElementById('proposeArticleBtn');if(pab)pab.addEventListener('click',function(){if(window.AET.news&&window.AET.news.openPropose)window.AET.news.openPropose();});
     var jp=document.getElementById('jobPostBtn');if(jp)jp.addEventListener('click',function(){if(window.AET.jobs)window.AET.jobs.openPost();});
     var sp=document.getElementById('seekerPostBtn');if(sp)sp.addEventListener('click',function(){if(window.AET.jobs)window.AET.jobs.openPostSeeker();});
     document.querySelectorAll('#jobsModeSwitch [data-jobmode]').forEach(function(btn){btn.addEventListener('click',function(){
