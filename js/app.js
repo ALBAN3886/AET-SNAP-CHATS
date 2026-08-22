@@ -145,18 +145,37 @@ window.AET=window.AET||{};
       onMount:function(){
         var f=document.getElementById('editProfileForm');var c=document.getElementById('cancelEditProfile');if(c)c.onclick=function(){var mc=document.getElementById('modalClose');if(mc)mc.click();};
         f.onsubmit=function(e){e.preventDefault();var fd=new FormData(f);
-          window.AET._demoUser=Object.assign({},me,{displayName:fd.get('displayName'),city:fd.get('city'),bio:fd.get('bio'),interests:(fd.get('interests')||'').split(',').map(function(x){return x.trim();}).filter(Boolean)});
-          saveSession(window.AET._demoUser);renderProfile();ui.toast('Profil mis a jour','success');var mc=document.getElementById('modalClose');if(mc)mc.click();
+          var updated=Object.assign({},me,{displayName:fd.get('displayName'),city:fd.get('city'),bio:fd.get('bio'),interests:(fd.get('interests')||'').split(',').map(function(x){return x.trim();}).filter(Boolean)});
+          window.AET._demoUser=updated;
+          if(auth.isFirebaseActive()&&window.AET.fb&&window.AET.fb.db&&updated.uid){
+            window.AET.fb.db.collection('users').doc(updated.uid).set({displayName:updated.displayName,city:updated.city,bio:updated.bio,interests:updated.interests},{merge:true}).catch(function(err){ui.toast('Erreur de sauvegarde : '+err.message,'error');});
+          }else{saveSession(updated);}
+          renderProfile();ui.toast('Profil mis a jour','success');var mc=document.getElementById('modalClose');if(mc)mc.click();
         };
       }});
   }
   function boot(){
     var mc=document.getElementById('modalClose');if(mc)mc.onclick=function(){var back=document.getElementById('modalBackdrop');if(back){back.classList.remove('is-open');var c=document.getElementById('modalContent');if(c)c.innerHTML='';}};
-    auth.initFb();
+    var fbOk=auth.initFb();
     if(location.pathname.endsWith('/admin.html')||location.pathname.endsWith('/admin')||document.getElementById('adminAuth')){if(window.AET.admin)window.AET.admin.start();return;}
     bindAuthUI();
-    var session=loadSession();
-    if(session){showApp(session);}
+    if(fbOk&&auth.isFirebaseActive()){
+      auth.onAuthChange(function(fbUser){
+        if(fbUser){
+          auth.getProfile(fbUser.uid).then(function(profile){
+            var base={uid:fbUser.uid,email:fbUser.email,displayName:fbUser.displayName||fbUser.email.split('@')[0]};
+            var known=(window.AET._demoUser&&window.AET._demoUser.uid===fbUser.uid)?window.AET._demoUser:{};
+            showApp(Object.assign(base,known,profile||{}));
+          });
+        }else{
+          var sh=document.getElementById('appShell');if(sh)sh.style.display='none';
+          var as=document.getElementById('authScreen');if(as)as.style.display='flex';
+        }
+      });
+    }else{
+      var session=loadSession();
+      if(session){showApp(session);}
+    }
   }
 
   function celebrateMatch(u){
