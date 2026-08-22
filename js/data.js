@@ -13,7 +13,7 @@ window.AET=window.AET||{};
 
   function freshState(){
     var pool=[];for(var i=0;i<20;i++)pool.push(_u());
-    var state={pool:pool,matches:[],messages:[],news:NEWS.slice(),jobs:JOBS.slice(),jobSeekers:[],notifications:[],reports:[],audit:[]};
+    var state={pool:pool,matches:[],messages:[],news:NEWS.slice(),jobs:JOBS.slice(),jobSeekers:[],notifications:[],reports:[],audit:[],blocked:[]};
     state.matches.push({id:uid(),userIds:['me','A'],other:{uid:'A',displayName:pool[0].displayName,age:pool[0].age,avatar:pool[0].avatar},lastMessage:'Salut ! Tu es dispo ce week-end ?',updatedAt:Date.now()-90000,unread:2});
     state.matches.push({id:uid(),userIds:['me','B'],other:{uid:'B',displayName:pool[1].displayName,age:pool[1].age,avatar:pool[1].avatar},lastMessage:'Merci pour la reco cafe, top !',updatedAt:Date.now()-3600000,unread:0});
     return state;
@@ -47,6 +47,7 @@ window.AET=window.AET||{};
     addMatch:function(o){var id=uid();state.matches.unshift({id:id,userIds:['me',o.uid],other:o,lastMessage:'Nouvelle connexion',updatedAt:Date.now(),unread:0});save();return id;},
     addMessage:function(m,t,me){var ms=state.messages.find(function(x){return x.matchId===m;})||{matchId:m,messages:[]};if(state.messages.indexOf(ms)<0)state.messages.push(ms);ms.messages.push({fromMe:me!==false,text:t,ts:Date.now()});var match=state.matches.find(function(x){return x.id===m;});if(match){match.lastMessage=t;match.updatedAt=Date.now();match.unread=me?0:(match.unread||0)+1;}save();},
     addJobSeeker:function(j){j.id=uid();j.ts=Date.now();state.jobSeekers.unshift(j);save();return j.id;},
+    blockUser:function(uidToBlock){if(state.blocked.indexOf(uidToBlock)<0)state.blocked.push(uidToBlock);state.pool=state.pool.filter(function(u){return u.uid!==uidToBlock;});save();},
     pushNotif:function(t){state.notifications.unshift({id:uid(),text:t,time:new Date(),ts:Date.now(),read:false});save();},
     markNotifsRead:function(){state.notifications.forEach(function(n){n.read=true;});save();},
     audit:function(a,d){state.audit.unshift({ts:Date.now(),action:a,detail:d});save();}
