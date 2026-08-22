@@ -3,7 +3,52 @@ window.AET=window.AET||{};
   'use strict';
   var ui=window.AET.ui,data=window.AET.data;
   function create(o){return data.addMatch({uid:o.uid,displayName:o.displayName,age:o.age,avatar:ui.initials(o.displayName)});}
+
+  async function likeReal(other){
+    var auth=window.AET.auth,fb=window.AET.fb;
+    if(!auth||!auth.isFirebaseActive()||!fb||!fb.db)return{ok:false,matched:false};
+    var me=auth.currentUser();if(!me)return{ok:false,matched:false};
+    var db=fb.db;
+    try{
+      await db.collection('likes').doc(me.uid+'_'+other.uid).set({from:me.uid,to:other.uid,ts:firebase.firestore.FieldValue.serverTimestamp()});
+      var reverse=await db.collection('likes').doc(other.uid+'_'+me.uid).get();
+      if(reverse.exists){
+        var pair=[me.uid,other.uid].sort();
+        var matchId=pair.join('_');
+        await db.collection('matches').doc(matchId).set({userIds:[me.uid,other.uid],createdAt:firebase.firestore.FieldValue.serverTimestamp(),lastMessage:'',updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        return{ok:true,matched:true};
+      }
+      return{ok:true,matched:false};
+    }catch(e){console.warn('[AET] likeReal impossible:',e.message);ui.toast('Action impossible : '+e.message,'error');return{ok:false,matched:false};}
+  }
+
+  async function loadRealMatches(){
+    var auth=window.AET.auth,fb=window.AET.fb;
+    if(!auth||!auth.isFirebaseActive()||!fb||!fb.db)return[];
+    var me=auth.currentUser();if(!me)return[];
+    try{
+      var snap=await fb.db.collection('matches').where('userIds','array-contains',me.uid).orderBy('updatedAt','desc').limit(30).get();
+      var out=[];
+      for(var i=0;i<snap.docs.length;i++){
+        var d=snap.docs[i].data();var otherUid=d.userIds.find(function(u){return u!==me.uid;});
+        var otherDoc=await fb.db.collection('users').doc(otherUid).get();
+        var od=otherDoc.exists?otherDoc.data():{displayName:'Utilisateur'};
+        out.push({id:snap.docs[i].id,userIds:d.userIds,real:true,other:{uid:otherUid,displayName:od.displayName,avatar:ui.initials(od.displayName)},lastMessage:d.lastMessage||'',updatedAt:d.updatedAt&&d.updatedAt.toMillis?d.updatedAt.toMillis():Date.now(),unread:0});
+      }
+      return out;
+    }catch(e){console.warn('[AET] loadRealMatches impossible:',e.message);return[];}
+  }
+
+  var lastRealMatches=[];
   function render(){
+    var auth=window.AET.auth;
+    if(auth&&auth.isFirebaseActive()){
+      loadRealMatches().then(function(real){lastRealMatches=real;renderList(real);if(window.AET.messages)window.AET.messages.setRealMatches(real);});
+    }else{
+      renderList(data.state.matches);
+    }
+  }
+  function renderList(ms){
     var list=document.getElementById('matchList');var empty=document.getElementById('matchesEmpty');
     if(!list)return;
     var ms=data.state.matches;
@@ -21,5 +66,5 @@ window.AET=window.AET||{};
     var total=ms.reduce(function(s,m){return s+(m.unread||0);},0);
     var badge=document.getElementById('matchBadge');if(badge)badge.textContent=total||'0';
   }
-  window.AET.matches={create:create,render:render};
+  window.AET.matches={create:create,render:render,likeReal:likeReal,loadRealMatches:loadRealMatches,getLastReal:function(){return lastRealMatches;}};
 })();
