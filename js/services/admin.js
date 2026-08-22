@@ -28,12 +28,27 @@ window.AET=window.AET||{};
     var t=document.getElementById('usersRows');if(!t)return;
     var q=(document.getElementById('usersSearch')?document.getElementById('usersSearch').value:'').toLowerCase();
     var list=data.state.pool.filter(function(p){return !q||p.displayName.toLowerCase().indexOf(q)>=0||p.city.toLowerCase().indexOf(q)>=0;}).slice(0,20);
-    t.innerHTML=list.map(function(u){return '<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar">'+ui.escapeHtml(ui.initials(u.displayName))+'</span><strong>'+ui.escapeHtml(u.displayName)+'</strong></div></td><td>--</td><td><span class="tag '+(u.isVerified?'ok':'')+'">'+(u.isVerified?'verifie':'a verifier')+'</span></td><td>'+ui.timeAgo(u.lastActive||Date.now())+'</td><td class="row-actions"><button class="btn btn-secondary btn-sm" type="button">Voir</button><button class="btn btn-danger btn-sm" type="button" data-ban="'+u.uid+'">Bannir</button></td></tr>';}).join('');
-    t.querySelectorAll('[data-ban]').forEach(function(b){b.onclick=function(){ui.toast('Action:'+b.dataset.ban,'error');data.audit('user_ban',b.dataset.ban);};});
+    t.innerHTML=list.map(function(u){return '<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar">'+ui.escapeHtml(ui.initials(u.displayName))+'</span><strong>'+ui.escapeHtml(u.displayName)+'</strong></div></td><td>--</td><td><span class="tag '+(u.isVerified?'ok':'')+'">'+(u.isVerified?'verifie':'a verifier')+'</span></td><td>'+ui.timeAgo(u.lastActive||Date.now())+'</td><td class="row-actions"><button class="btn btn-secondary btn-sm" type="button" data-view="'+u.uid+'">Voir</button><button class="btn btn-danger btn-sm" type="button" data-ban="'+u.uid+'">Bannir</button></td></tr>';}).join('');
+    t.querySelectorAll('[data-ban]').forEach(function(b){b.onclick=function(){ui.toast('Utilisateur suspendu (demo)','error');data.audit('user_ban',b.dataset.ban);loadUsers();};});
+    t.querySelectorAll('[data-view]').forEach(function(b){b.onclick=function(){
+      var u=data.state.pool.find(function(x){return x.uid===b.dataset.view;});if(!u)return;
+      ui.modal({html:'<h3>'+ui.escapeHtml(u.displayName)+'</h3><p style="color:var(--gray-600)">'+ui.escapeHtml(u.city)+' &middot; '+u.age+' ans &middot; '+(u.isVerified?'Verifie':'Non verifie')+'</p><p>'+ui.escapeHtml(u.bio||'')+'</p><div class="modal-actions"><button class="btn btn-secondary" id="closeUserView">Fermer</button></div>',
+        onMount:function(){var c=document.getElementById('closeUserView');if(c)c.onclick=function(){var mc=document.getElementById('adminModalClose');if(mc)mc.click();};}});
+    };});
   }
   function loadReports(){
     var t=document.getElementById('reportsRows');
-    t.innerHTML=data.state.reports.length?data.state.reports.map(function(r){return '<tr><td>'+ui.escapeHtml(r.type)+'</td><td>'+ui.escapeHtml(r.target)+'</td><td>'+ui.escapeHtml(r.reason)+'</td><td><span class="tag">'+ui.escapeHtml(r.status)+'</span></td><td>'+ui.timeAgo(r.ts)+'</td><td class="row-actions"><button class="btn btn-secondary btn-sm" type="button">Examiner</button><button class="btn btn-danger btn-sm" type="button">Fermer</button></td></tr>';}).join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--gray-600)">Aucun signalement</td></tr>';
+    var f=document.getElementById('reportsFilter')?document.getElementById('reportsFilter').value:'open';
+    var list=data.state.reports.filter(function(r){return f==='all'||r.status===f;});
+    t.innerHTML=list.length?list.map(function(r,i){return '<tr><td>'+ui.escapeHtml(r.type)+'</td><td>'+ui.escapeHtml(r.target)+'</td><td>'+ui.escapeHtml(r.reason)+'</td><td><span class="tag">'+ui.escapeHtml(r.status)+'</span></td><td>'+ui.timeAgo(r.ts)+'</td><td class="row-actions"><button class="btn btn-secondary btn-sm" type="button" data-view-report="'+i+'">Examiner</button><button class="btn btn-danger btn-sm" type="button" data-close-report="'+i+'">Fermer</button></td></tr>';}).join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--gray-600)">Aucun signalement</td></tr>';
+    t.querySelectorAll('[data-view-report]').forEach(function(b){b.onclick=function(){
+      var r=list[+b.dataset.viewReport];if(!r)return;
+      ui.modal({html:'<h3>Signalement</h3><p><strong>Type :</strong> '+ui.escapeHtml(r.type)+'</p><p><strong>Cible :</strong> '+ui.escapeHtml(r.target)+'</p><p><strong>Raison :</strong> '+ui.escapeHtml(r.reason)+'</p><div class="modal-actions"><button class="btn btn-secondary" id="closeReportView">Fermer</button></div>',
+        onMount:function(){var c=document.getElementById('closeReportView');if(c)c.onclick=function(){var mc=document.getElementById('adminModalClose');if(mc)mc.click();};}});
+    };});
+    t.querySelectorAll('[data-close-report]').forEach(function(b){b.onclick=function(){
+      var r=list[+b.dataset.closeReport];if(!r)return;r.status='closed';data.audit('report_close',r.target);ui.toast('Signalement ferme','success');loadReports();
+    };});
   }
   function loadNews(){
     var t=document.getElementById('newsRows');
@@ -57,10 +72,10 @@ window.AET=window.AET||{};
     var sh=document.getElementById('adminShell');if(sh)sh.style.display='none';
     var form=document.getElementById('adminLoginForm');
     if(form)form.onsubmit=function(e){e.preventDefault();var fd=new FormData(form);window.AET.auth.signIn(fd.get('email'),fd.get('password')).then(function(){show();}).catch(function(){show();});};
-    function show(){if(back)back.style.display='none';if(sh)sh.style.display='grid';var me=document.getElementById('adminMe');if(me)me.textContent=form?(fd_get(form,'email')||'admin'):'admin';navigate('dashboard');}
+    function show(){if(back)back.style.display='none';if(sh)sh.style.display='grid';var me=document.getElementById('adminMe');if(me)me.textContent=form?(fd_get(form,'email')||'admin'):'admin';ui.toast('Mode demo : verification admin non securisee avant connexion Firebase (regles/claims).','error');navigate('dashboard');}
     function fd_get(f,name){var fd=new FormData(f);return fd.get(name);}
     document.querySelectorAll('[data-admin]').forEach(function(a){a.onclick=function(){navigate(a.dataset.admin);};});
-    var lo=document.getElementById('adminLogout');if(lo)lo.onclick=function(){window.AET.auth.signOut().then(function(){location.href='/';});};
+    var lo=document.getElementById('adminLogout');if(lo)lo.onclick=function(){window.AET.auth.signOut().then(function(){location.href='index.html';});};
     var rd=document.getElementById('refreshDash');if(rd)rd.onclick=loadDash;
     var ur=document.getElementById('usersRefresh');if(ur)ur.onclick=loadUsers;
     var rr=document.getElementById('reportsRefresh');if(rr)rr.onclick=loadReports;
