@@ -28,3 +28,4 @@
 .bottom-nav__inner a{position:relative}
 .check-field{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--gray-600);margin-bottom:10px;cursor:pointer}
 .check-field input{margin-top:2px}
+.slot--filled{border-style:solid;color:transparent}
