@@ -52,6 +52,22 @@ window.AET=window.AET||{};
   }
   function loadNews(){
     var t=document.getElementById('newsRows');
+    var auth=window.AET.auth;
+    if(auth&&auth.isFirebaseActive()){
+      t.innerHTML='<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--gray-600)">Chargement...</td></tr>';
+      var fb=window.AET.fb;
+      fb.db.collection('news').orderBy('createdAt','desc').limit(50).get().then(function(snap){
+        var list=snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+        t.innerHTML=list.map(function(n){return '<tr><td><strong>'+ui.escapeHtml(n.title)+'</strong><br><span style="font-size:12px;color:var(--gray-600)">par '+ui.escapeHtml(n.authorName||'--')+'</span></td><td>'+ui.escapeHtml(n.category||'')+'</td><td><span class="tag '+(n.status==='published'?'ok':'')+'">'+ui.escapeHtml(n.status||'pending')+'</span></td><td class="row-actions">'+(n.status!=='published'?'<button class="btn btn-secondary btn-sm" type="button" data-approve="'+n.id+'">Publier</button>':'')+'<button class="btn btn-danger btn-sm" type="button" data-delnewsreal="'+n.id+'">Suppr.</button></td></tr>';}).join('')||'<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--gray-600)">Aucun article</td></tr>';
+        t.querySelectorAll('[data-approve]').forEach(function(b){b.onclick=function(){
+          fb.db.collection('news').doc(b.dataset.approve).update({status:'published'}).then(function(){ui.toast('Article publie','success');loadNews();}).catch(function(err){ui.toast('Erreur (droits admin requis) : '+err.message,'error');});
+        };});
+        t.querySelectorAll('[data-delnewsreal]').forEach(function(b){b.onclick=function(){
+          fb.db.collection('news').doc(b.dataset.delnewsreal).delete().then(function(){ui.toast('Supprime','error');loadNews();}).catch(function(err){ui.toast('Erreur (droits admin requis) : '+err.message,'error');});
+        };});
+      }).catch(function(err){t.innerHTML='<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--gray-600)">Erreur : '+ui.escapeHtml(err.message)+'</td></tr>';});
+      return;
+    }
     t.innerHTML=data.state.news.map(function(n,i){return '<tr><td><strong>'+ui.escapeHtml(n.title)+'</strong></td><td>'+ui.escapeHtml(n.category)+'</td><td><span class="tag ok">publie</span></td><td class="row-actions"><button class="btn btn-secondary btn-sm" type="button">Editer</button><button class="btn btn-danger btn-sm" type="button" data-delnews="'+i+'">Suppr.</button></td></tr>';}).join('');
     t.querySelectorAll('[data-delnews]').forEach(function(b){b.onclick=function(){var removed=data.state.news.splice(+b.dataset.delnews,1);data.audit('news_delete',removed[0]&&removed[0].title);ui.toast('Supprime','error');loadNews();};});
   }
@@ -89,7 +105,18 @@ window.AET=window.AET||{};
       ui.modal({html:'<h3>Nouvel article</h3><form id="newNewsForm"><div class="field"><label class="label">Titre</label><input class="input" name="title" required/></div><div class="field"><label class="label">Categorie</label><select class="input" name="category"><option>Communaute</option><option>Evenements</option><option>Culture</option><option>Carriere</option><option>Conseils</option><option>Communiques</option></select></div><div class="field"><label class="label">Excerpt</label><textarea class="input" name="excerpt" rows="3"></textarea></div><div class="modal-actions"><button type="button" class="btn btn-secondary" id="cancelNews">Annuler</button><button class="btn btn-primary" type="submit">Creer</button></div></form>',
         onMount:function(){
           var cn=document.getElementById('cancelNews');if(cn)cn.onclick=function(){var mc=document.getElementById('adminModalClose');if(mc)mc.click();};
-          var nf=document.getElementById('newNewsForm');if(nf)nf.onsubmit=function(e){e.preventDefault();var fd=new FormData(e.target);data.state.news.unshift({title:fd.get('title'),category:fd.get('category'),excerpt:fd.get('excerpt'),icon:(fd.get('title')||'?')[0]});data.audit('news_create',fd.get('title'));ui.toast('Article cree','success');var mc=document.getElementById('adminModalClose');if(mc)mc.click();loadNews();};
+          var nf=document.getElementById('newNewsForm');if(nf)nf.onsubmit=function(e){
+            e.preventDefault();var fd=new FormData(e.target);
+            var auth=window.AET.auth;
+            if(auth&&auth.isFirebaseActive()){
+              var me=auth.currentUser();var fb=window.AET.fb;
+              fb.db.collection('news').add({title:fd.get('title'),category:fd.get('category'),excerpt:fd.get('excerpt'),icon:(fd.get('title')||'?')[0],authorId:me.uid,authorName:me.displayName||me.email,status:'published',createdAt:firebase.firestore.FieldValue.serverTimestamp()})
+                .then(function(){ui.toast('Article cree','success');var mc=document.getElementById('adminModalClose');if(mc)mc.click();loadNews();})
+                .catch(function(err){ui.toast('Erreur (droits admin requis) : '+err.message,'error');});
+              return;
+            }
+            data.state.news.unshift({title:fd.get('title'),category:fd.get('category'),excerpt:fd.get('excerpt'),icon:(fd.get('title')||'?')[0]});data.audit('news_create',fd.get('title'));ui.toast('Article cree','success');var mc2=document.getElementById('adminModalClose');if(mc2)mc2.click();loadNews();
+          };
         }
       });
     };
