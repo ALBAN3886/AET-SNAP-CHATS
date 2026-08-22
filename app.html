@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>AET RENCONTRE - Application</title>
 <meta name="theme-color" content="#E85D75"/>
-<link rel="manifest" href="manifest.json"/>
-<link rel="icon" type="image/png" href="assets/icons/icon-192.png"/>
+<link rel="manifest" href="manifest.json?v4"/>
+<link rel="icon" type="image/png" href="assets/icons/icon-192.png?v4"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"/>
-<link rel="stylesheet" href="css/styles.css"/>
-<link rel="stylesheet" href="css/app.css"/>
+<link rel="stylesheet" href="css/styles.css?v4"/>
+<link rel="stylesheet" href="css/app.css?v4"/>
 </head>
 <body>
-<div class="auth-screen" id="authScreen"><div class="auth-card"><div class="brand" style="justify-content:center;margin-bottom:14px;font-size:19px"><span class="brand__mark">AET</span><span>AET RENCONTRE</span></div><h2 id="authTitle">Bienvenue</h2><p style="text-align:center;color:var(--gray-600);margin-bottom:18px;font-size:14px">Connectez-vous pour rejoindre la communaute.</p><div class="auth-tabs" id="authTabs"><div class="auth-tab is-active" data-tab="login">Connexion</div><div class="auth-tab" data-tab="signup">Inscription</div></div><form id="authForm" autocomplete="on" novalidate><div id="signupOnly" style="display:none"><div class="field"><label class="label">Nom complet</label><input class="input" name="displayName" type="text" placeholder="Ex : Aicha K."/></div></div><div class="field"><label class="label">Email</label><input class="input" name="email" type="email" required placeholder="vous@email.com"/></div><div class="field"><label class="label">Mot de passe</label><input class="input" name="password" type="password" required minlength="6" placeholder="6 caracteres minimum"/></div><div id="signupExtra" style="display:none"><div class="field"><label class="label">Date de naissance (18+ requis)</label><input class="input" name="birthdate" type="date"/></div><div class="field"><label class="label">Ville</label><input class="input" name="city" type="text" placeholder="Ex : Dakar"/></div><div class="field"><label class="label">Vous etes</label><select class="input" name="gender"><option value="woman">Femme</option><option value="man">Homme</option><option value="other">Autre</option></select></div><label class="check-field"><input type="checkbox" name="consentAge" value="1" required/> Je confirme avoir 18 ans ou plus.</label><label class="check-field"><input type="checkbox" name="consentTerms" value="1" required/> J'accepte les conditions d'utilisation et la politique de confidentialite.</label></div><button type="submit" class="btn btn-primary btn-full btn-lg" id="authSubmit">Se connecter</button></form><div class="auth-footer"><a href="index.html">Retour a l accueil</a></div></div></div>
+<div class="auth-screen" id="authScreen"><div class="auth-card"><div class="brand" style="justify-content:center;margin-bottom:14px;font-size:19px"><span class="brand__mark">AET</span><span>AET RENCONTRE</span></div><h2 id="authTitle">Bienvenue</h2><p style="text-align:center;color:var(--gray-600);margin-bottom:18px;font-size:14px">Connectez-vous pour rejoindre la communaute.</p><div class="auth-tabs" id="authTabs"><div class="auth-tab is-active" data-tab="login">Connexion</div><div class="auth-tab" data-tab="signup">Inscription</div></div><form id="authForm" autocomplete="on" novalidate><div id="signupOnly" style="display:none"><div class="field"><label class="label">Nom complet</label><input class="input" name="displayName" type="text" placeholder="Ex : Aicha K."/></div></div><div class="field"><label class="label">Email</label><input class="input" name="email" type="email" required placeholder="vous@email.com"/></div><div class="field"><label class="label">Mot de passe</label><input class="input" name="password" type="password" required minlength="6" placeholder="6 caracteres minimum"/></div><div id="signupExtra" style="display:none"><div class="field"><label class="label">Date de naissance (18+ requis)</label><input class="input" name="birthdate" type="date"/></div><div class="field"><label class="label">Ville</label><input class="input" name="city" type="text" placeholder="Ex : Dakar"/></div><div class="field"><label class="label">Vous etes</label><select class="input" name="gender"><option value="woman">Femme</option><option value="man">Homme</option><option value="other">Autre</option></select></div><label class="check-field"><input type="checkbox" name="consentAge" value="1" required/> Je confirme avoir 18 ans ou plus.</label><label class="check-field"><input type="checkbox" name="consentTerms" value="1" required/> J'accepte les conditions d'utilisation et la politique de confidentialite.</label></div><button type="submit" class="btn btn-primary btn-full btn-lg" id="authSubmit">Se connecter</button></form><div class="auth-footer"><a href="index.html?v4">Retour a l accueil</a></div></div></div>
 
 <div class="app-shell" id="appShell" style="display:none">
 <aside class="app-side"><div class="brand"><span class="brand__mark">AET</span><span>AET</span></div><nav class="app-nav"><a data-page="home" class="is-active"><span>&#127968;</span><span>Accueil</span></a><a data-page="discover"><span>&#10084;</span><span>Decouvrir</span></a><a data-page="matches"><span>&#128149;</span><span>Matchs</span><span class="badge" id="matchBadge">0</span></a><a data-page="messages"><span>&#128172;</span><span>Messages</span><span class="badge" id="msgBadge">0</span></a><a data-page="news"><span>&#128240;</span><span>Actualites</span></a><a data-page="jobs"><span>&#128188;</span><span>Emploi</span></a><a data-page="notifications"><span>&#128276;</span><span>Notifications</span><span class="badge" id="notifBadgeNav">0</span></a><a data-page="profile"><span>&#128100;</span><span>Profil</span></a></nav><div class="app-side__foot"><div id="meCard" style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><div class="avatar" id="meAvatar">--</div><div style="min-width:0"><div style="font-weight:700;font-size:14px" id="meName">--</div><div style="font-size:11px;color:var(--gray-600)" id="meCity">--</div></div></div><a href="#" id="logoutLink" style="font-size:12px;color:var(--coral-dark)">Se deconnecter</a></div></aside>
@@ -51,15 +51,15 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-<script src="firebase-config.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/data.js"></script>
-<script src="js/services/discovery.js"></script>
-<script src="js/services/matches.js"></script>
-<script src="js/services/messages.js"></script>
-<script src="js/services/news.js"></script>
-<script src="js/services/jobs.js"></script>
-<script src="js/services/admin.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/app.js"></script>
+<script src="firebase-config.js?v4"></script>
+<script src="js/auth.js?v4"></script>
+<script src="js/data.js?v4"></script>
+<script src="js/services/discovery.js?v4"></script>
+<script src="js/services/matches.js?v4"></script>
+<script src="js/services/messages.js?v4"></script>
+<script src="js/services/news.js?v4"></script>
+<script src="js/services/jobs.js?v4"></script>
+<script src="js/services/admin.js?v4"></script>
+<script src="js/ui.js?v4"></script>
+<script src="js/app.js?v4"></script>
 </body></html>
