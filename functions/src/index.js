@@ -32,14 +32,16 @@ exports.createUserProfile=onCall(async(req)=>{
 exports.likeUser=onCall(async(req)=>{
   const uid=req.auth&&req.auth.uid;if(!uid)throw new HttpsError('unauthenticated','Auth requise');
   const otherUid=req.data&&req.data.target;if(!otherUid)throw new HttpsError('invalid-argument','Cible requise');
-  const reverse=await db.collection('swipes').doc(otherUid+'_'+uid).get();
-  if(reverse.exists&&reverse.data().direction==='like'){
+  if(otherUid===uid)throw new HttpsError('invalid-argument','Impossible de se liker soi-meme');
+  const reverse=await db.collection('likes').doc(otherUid+'_'+uid).get();
+  await db.collection('likes').doc(uid+'_'+otherUid).set({from:uid,to:otherUid,ts:admin.firestore.FieldValue.serverTimestamp()},{merge:true});
+  if(reverse.exists){
     const matchId=[uid,otherUid].sort().join('_');
     await db.collection('matches').doc(matchId).set({
-      id:matchId,userIds:[uid,otherUid].sort(),
+      userIds:[uid,otherUid].sort(),
       createdAt:admin.firestore.FieldValue.serverTimestamp(),
       updatedAt:admin.firestore.FieldValue.serverTimestamp(),
-      lastMessage:'',unreadFor:{}
+      lastMessage:''
     },{merge:true});
     await Promise.all([
       db.collection('notifications').doc(uid).collection('items').add({userId:uid,type:'match',text:'Nouveau match !',read:false,ts:admin.firestore.FieldValue.serverTimestamp()}),
@@ -47,7 +49,6 @@ exports.likeUser=onCall(async(req)=>{
     ]);
     return{matched:true,matchId};
   }
-  await db.collection('swipes').doc(uid+'_'+otherUid).set({from:uid,to:otherUid,direction:'like',ts:admin.firestore.FieldValue.serverTimestamp()},{merge:true});
   return{matched:false};
 });
 
