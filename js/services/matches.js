@@ -6,19 +6,12 @@ window.AET=window.AET||{};
 
   async function likeReal(other){
     var auth=window.AET.auth,fb=window.AET.fb;
-    if(!auth||!auth.isFirebaseActive()||!fb||!fb.db)return{ok:false,matched:false};
+    if(!auth||!auth.isFirebaseActive()||!fb||!fb.functions)return{ok:false,matched:false};
     var me=auth.currentUser();if(!me)return{ok:false,matched:false};
-    var db=fb.db;
     try{
-      await db.collection('likes').doc(me.uid+'_'+other.uid).set({from:me.uid,to:other.uid,ts:firebase.firestore.FieldValue.serverTimestamp()});
-      var reverse=await db.collection('likes').doc(other.uid+'_'+me.uid).get();
-      if(reverse.exists){
-        var pair=[me.uid,other.uid].sort();
-        var matchId=pair.join('_');
-        await db.collection('matches').doc(matchId).set({userIds:[me.uid,other.uid],createdAt:firebase.firestore.FieldValue.serverTimestamp(),lastMessage:'',updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-        return{ok:true,matched:true};
-      }
-      return{ok:true,matched:false};
+      var callLike=fb.functions.httpsCallable('likeUser');
+      var res=await callLike({target:other.uid});
+      return{ok:true,matched:!!(res.data&&res.data.matched)};
     }catch(e){console.warn('[AET] likeReal impossible:',e.message);ui.toast('Action impossible : '+e.message,'error');return{ok:false,matched:false};}
   }
 
