@@ -51,7 +51,7 @@ window.AET=window.AET||{};
   function renderList(ms){
     var list=document.getElementById('matchList');var empty=document.getElementById('matchesEmpty');
     if(!list)return;
-    var ms=data.state.matches;
+    ms=ms||[];
     if(!ms.length){list.innerHTML='';if(empty)empty.style.display='block';return;}
     if(empty)empty.style.display='none';
     list.innerHTML=ms.map(function(m){return '<div class="match-tile" data-mid="'+m.id+'"><div class="avatar">'+ui.escapeHtml(m.other.avatar||ui.initials(m.other.displayName))+'</div><div style="min-width:0"><div class="match-tile__name">'+ui.escapeHtml(m.other.displayName)+'</div><div class="match-tile__msg">'+ui.escapeHtml(m.lastMessage||'Nouvelle connexion')+'</div></div><div class="match-tile__time">'+ui.timeAgo(m.updatedAt)+(m.unread?' &middot; <strong style="color:var(--coral)">'+m.unread+'</strong>':'')+'</div></div>';}).join('');
