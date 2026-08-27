@@ -13,6 +13,12 @@ window.AET=window.AET||{};
   }
   function currentUser(){return auth?auth.currentUser:(window.AET._demoUser||null);}
   function isFirebaseActive(){return !!auth;}
+  async function isAdminUser(){
+    if(!auth)return true;
+    var u=auth.currentUser;if(!u)return false;
+    try{var res=await u.getIdTokenResult(true);return res.claims&&res.claims.admin===true;}
+    catch(e){console.warn('[AET] verification admin impossible:',e.message);return false;}
+  }
   function onAuthChange(cb){
     if(auth){auth.onAuthStateChanged(function(u){cb(u);});}
     else{cb(null);}
@@ -32,5 +38,5 @@ window.AET=window.AET||{};
     var u={uid:'demo-'+btoa(p.email).slice(0,10),email:p.email,displayName:p.displayName};window.AET._demoUser=u;return{user:u};
   }
   async function signOut(){if(auth){await auth.signOut();}window.AET._demoUser=null;}
-  window.AET.auth={initFb:initFb,currentUser:currentUser,signIn:signIn,signUp:signUp,signOut:signOut,isFirebaseActive:isFirebaseActive,onAuthChange:onAuthChange,getProfile:getProfile};
+  window.AET.auth={initFb:initFb,currentUser:currentUser,signIn:signIn,signUp:signUp,signOut:signOut,isFirebaseActive:isFirebaseActive,onAuthChange:onAuthChange,getProfile:getProfile,isAdminUser:isAdminUser};
 })();
