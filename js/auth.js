@@ -2,13 +2,14 @@ window.AET=window.AET||{};
 (function(){
   'use strict';
   var cfg=window.AET_FIREBASE_CONFIG||{};
-  var app=null,auth=null,db=null,storage=null;
+  var app=null,auth=null,db=null,storage=null,functionsApi=null;
   function initFb(){
     if(!cfg.apiKey||String(cfg.apiKey).indexOf('VOTRE_')===0){console.warn('[AET] Firebase non configure - mode demo.');return false;}
     try{
       if(!window.firebase.apps.length){app=window.firebase.initializeApp(cfg);}else{app=window.firebase.apps[0];}
       auth=window.firebase.auth();db=window.firebase.firestore();storage=window.firebase.storage();
-      window.AET.fb={app:app,auth:auth,db:db,storage:storage};return true;
+      functionsApi=window.firebase.app().functions('europe-west1');
+      window.AET.fb={app:app,auth:auth,db:db,storage:storage,functions:functionsApi};return true;
     }catch(e){console.warn('[AET] Firebase init impossible:',e.message);return false;}
   }
   function currentUser(){return auth?auth.currentUser:(window.AET._demoUser||null);}
