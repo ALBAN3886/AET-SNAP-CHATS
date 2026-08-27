@@ -69,7 +69,7 @@ window.AET=window.AET||{};
     if(match.real){
       var auth=window.AET.auth,fb=window.AET.fb;var me=auth.currentUser();
       try{
-        await fb.db.collection('reports').add({type:'utilisateur',reporterId:me.uid,target:match.other.displayName,targetUid:match.other.uid,reason:'Signale depuis la messagerie',status:'open',ts:firebase.firestore.FieldValue.serverTimestamp()});
+        await fb.db.collection('reports').add({type:'utilisateur',reporterId:me.uid,target:match.other.displayName,targetUid:match.other.uid,reason:'Signale depuis la messagerie',status:'open',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
         ui.toast('Signalement envoye a la moderation','success');
       }catch(e){ui.toast('Erreur : '+e.message,'error');}
     }else{
@@ -120,9 +120,9 @@ window.AET=window.AET||{};
     var form=bindComposeAndMenu(pane,match);
     var fb=window.AET.fb,auth=window.AET.auth;var me=auth.currentUser();
     if(unsubscribe){unsubscribe();unsubscribe=null;}
-    unsubscribe=fb.db.collection('matches').doc(match.id).collection('messages').orderBy('ts','asc').limit(200)
+    unsubscribe=fb.db.collection('matches').doc(match.id).collection('messages').orderBy('createdAt','asc').limit(200)
       .onSnapshot(function(snap){
-        var msgs=snap.docs.map(function(d){var m=d.data();return '<div class="msg'+(m.senderId===me.uid?' me':'')+'">'+ui.escapeHtml(m.text)+'<span class="time">'+(m.ts&&m.ts.toMillis?ui.timeAgo(m.ts.toMillis()):'...')+'</span></div>';}).join('')||'<div class="empty" style="margin:auto"><div class="empty__icon">&#128172;</div><h3>Dites bonjour !</h3></div>';
+        var msgs=snap.docs.map(function(d){var m=d.data();return '<div class="msg'+(m.senderId===me.uid?' me':'')+'">'+ui.escapeHtml(m.text)+'<span class="time">'+(m.createdAt&&m.createdAt.toMillis?ui.timeAgo(m.createdAt.toMillis()):'...')+'</span></div>';}).join('')||'<div class="empty" style="margin:auto"><div class="empty__icon">&#128172;</div><h3>Dites bonjour !</h3></div>';
         var host=document.getElementById('chatMsgs');
         if(host){host.innerHTML=msgs;host.scrollTop=host.scrollHeight;}
       },function(err){
@@ -131,9 +131,8 @@ window.AET=window.AET||{};
       });
     if(form)form.onsubmit=function(e){
       e.preventDefault();var inp=document.getElementById('chatInput');var v=inp.value.trim();if(!v)return;inp.value='';
-      fb.db.collection('matches').doc(match.id).collection('messages').add({senderId:me.uid,text:v,ts:firebase.firestore.FieldValue.serverTimestamp()})
-        .then(function(){return fb.db.collection('matches').doc(match.id).set({lastMessage:v,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});})
-        .catch(function(err){ui.toast('Envoi impossible : '+err.message,'error');});
+      var callSend=fb.functions.httpsCallable('sendMessage');
+      callSend({matchId:match.id,text:v}).catch(function(err){ui.toast('Envoi impossible : '+err.message,'error');inp.value=v;});
     };
   }
 
